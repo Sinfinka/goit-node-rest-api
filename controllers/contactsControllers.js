@@ -50,6 +50,7 @@ export const updateContact = controllerDecorator(async (req, res, next) => {
 export const deleteContact = controllerDecorator(async (req, res, next) => {
   const { id } = req.params;
   const contact = await removeContact(id);
+
   if (!contact) {
     throw HttpError(404, `Contact with  ID ${id} not found`);
   }
