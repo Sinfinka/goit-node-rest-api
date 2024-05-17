@@ -7,7 +7,7 @@ export const createContactSchema = Joi.object({
     "string.min": 'Field "name" must be at least 3 characters long',
     "string.max": 'Field "name" must be at most 30 characters long',
   }),
-  email: Joi.string().email().required().messages({
+  email: Joi.string().email().lowercase().required().messages({
     "any.required": 'Field "email" is required',
     "string.empty": 'Field "email" cannot be empty',
     "string.email": 'Field "email" must be a valid email address',
@@ -24,10 +24,20 @@ export const updateContactSchema = Joi.object({
     "string.min": 'Field "name" must be at least 3 characters long',
     "string.max": 'Field "name" must be at most 30 characters long',
   }),
-  email: Joi.string().email().message({
+  email: Joi.string().email().lowercase().message({
     "string.email": 'Field "email" must be a valid email address',
   }),
   phone: Joi.string().min(6).message({
     "string.min": 'Field "name" must be at least 6 characters long',
   }),
+});
+
+export const favoriteContactSchema = Joi.object({
+  favorite: Joi.boolean().required(),
+});
+
+export const objectIdSchema = Joi.object({
+  id: Joi.string()
+    .regex(/^[0-9a-fA-F]{24}$/)
+    .message("You have entered an incorrect or non-existent identifier"),
 });
