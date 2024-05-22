@@ -19,20 +19,15 @@ import validateParams from "../helpers/validateParams.js";
 const contactsRouter = express.Router();
 
 contactsRouter.get("/", getAllContacts);
-
 contactsRouter.get("/:id", validateParams(objectIdSchema), getOneContact);
-
 contactsRouter.delete("/:id", validateParams(objectIdSchema), deleteContact);
-
 contactsRouter.post("/", validateBody(createContactSchema), createContact);
-
 contactsRouter.put(
   "/:id",
   validateParams(objectIdSchema),
   validateBody(updateContactSchema),
   updateContact
 );
-
 contactsRouter.patch(
   "/:id/favorite",
   validateParams(objectIdSchema),
