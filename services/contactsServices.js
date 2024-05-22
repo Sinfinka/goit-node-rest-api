@@ -1,8 +1,8 @@
-import Contact from "../db/userModel.js";
+import Contact from "../models/contactModel.js";
 
-export const listContacts = () => Contact.find();
+export const listContacts = (owner) => Contact.find(owner);
 
-export const getContactById = (id) => Contact.findById(id);
+export const getContactById = (id, owner) => Contact.findOne(id, owner);
 
 export const addContact = (data) => Contact.create(data);
 
