@@ -32,9 +32,6 @@ export const registerUser = controllerDecorator(async (req, res) => {
     throw HttpError(409, "Email in use");
   }
   const user = await addUser(userData);
-  if (!user) {
-    throw HttpError(400, "Body must have at least one field");
-  }
   res.status(201).json({ user: { email, subscription: user.subscription } });
 });
 
@@ -60,8 +57,8 @@ export const loginUser = controllerDecorator(async (req, res, next) => {
 });
 
 export const logoutUser = controllerDecorator(async (req, res, next) => {
-  const { _id } = req.user;
-  const updatedUser = await changeUser(_id, { token: null });
+  const { id } = req.user;
+  const updatedUser = await changeUser({ _id: id }, { token: null });
   if (!updatedUser) {
     throw HttpError(404, "User not found");
   }

@@ -40,6 +40,7 @@ export const getOneContact = controllerDecorator(async (req, res, next) => {
   const { id } = req.params;
   const { _id: owner } = req.user;
   const contact = await getContactById({ _id: id, owner });
+  console.log(owner);
   if (!contact) {
     throw HttpError(404, "Not found");
   }
@@ -60,7 +61,10 @@ export const updateContact = controllerDecorator(async (req, res, next) => {
     throw HttpError(400, "Body must have at least one field");
   }
   const { id } = req.params;
-  const contact = await editContact(id, req.body);
+  const { _id: owner } = req.user;
+  const contact = await editContact({ _id: id, owner }, req.body);
+
+  console.log(owner);
   if (!contact) {
     throw HttpError(404, "Not found");
   }
@@ -69,7 +73,8 @@ export const updateContact = controllerDecorator(async (req, res, next) => {
 
 export const deleteContact = controllerDecorator(async (req, res, next) => {
   const { id } = req.params;
-  const contact = await removeContact(id);
+  const { _id: owner } = req.user;
+  const contact = await removeContact({ _id: id, owner });
 
   if (!contact) {
     throw HttpError(404, `Contact with  ID ${id} not found`);
@@ -80,7 +85,8 @@ export const deleteContact = controllerDecorator(async (req, res, next) => {
 export const modifyContactStatus = controllerDecorator(
   async (req, res, next) => {
     const { id } = req.params;
-    const result = await updateStatusContact(id, req.body);
+    const { _id: owner } = req.user;
+    const result = await updateStatusContact({ _id: id, owner }, req.body);
     if (!result) {
       throw HttpError(404, "Not found");
     }
