@@ -20,9 +20,9 @@ const userSchema = new Schema(
       type: String,
       default: null,
     },
-    owner: {
-      type: Schema.Types.ObjectId,
-      ref: "user",
+    avatarURL: {
+      type: String,
+      default: null,
     },
   },
   { versionKey: false }
