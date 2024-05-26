@@ -1,3 +1,13 @@
+#mine
+
+tmp/*
+!tmp/.gitkeep
+public/avatars/*
+!public/avatars/.gitkeep
+
+
+
+
 # Logs
 logs
 *.log

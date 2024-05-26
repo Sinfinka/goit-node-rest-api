@@ -5,6 +5,7 @@ import cors from "cors";
 import contactsRouter from "./routes/contactsRouter.js";
 import userRouter from "./routes/userRouter.js";
 import authMiddleware from "./middlewares/auth.js";
+import path from "path";
 
 import app from "./db/index.js";
 
@@ -14,6 +15,7 @@ app.use(express.json());
 
 app.use("/contacts", authMiddleware, contactsRouter);
 app.use("/users", userRouter);
+app.use("/avatars", express.static(path.resolve("public", "avatars")));
 
 app.use((_, res) => {
   res.status(404).json({ message: "Route not found" });
