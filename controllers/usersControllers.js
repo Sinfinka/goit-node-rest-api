@@ -49,7 +49,6 @@ export const loginUser = controllerDecorator(async (req, res, next) => {
   const { email, password } = req.body;
   const emailInLowerCase = email.toLowerCase();
   const existUser = await findUser({ email: emailInLowerCase });
-  console.log(emailInLowerCase);
 
   if (existUser === null) {
     throw HttpError(409, "Email not found");
