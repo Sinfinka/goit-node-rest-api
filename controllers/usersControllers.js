@@ -37,7 +37,6 @@ export const registerUser = controllerDecorator(async (req, res) => {
     password: passwordHash,
     avatarURL,
   };
-  console.log(avatarURL);
   if (existUser !== null) {
     throw HttpError(409, "Email in use");
   }
@@ -95,8 +94,8 @@ export const uploadAvatar = controllerDecorator(async (req, res, next) => {
   const newFilePath = path.join(avatarsDir, uniqueFileName);
   await fs.rename(req.file.path, newFilePath);
   const image = await Jimp.read(newFilePath);
-  await image.resize(250, 250).write(newFilePath);
-  const avatarURL = `/avatars/${uniqueFileName}`;
+  await image.resize(250, 250).writeAsync(newFilePath);
+  const avatarURL = path.join("/avatars", uniqueFileName);
   const { id } = req.user;
   const updatedUser = await changeUser({ _id: id }, { avatarURL: avatarURL });
   if (updatedUser === null) {
