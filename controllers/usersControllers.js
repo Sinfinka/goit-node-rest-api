@@ -7,11 +7,14 @@ import {
   userList,
 } from "../services/usersServices.js";
 import bcrypt from "bcrypt";
+import crypto, { verify } from "node:crypto";
 import jwt from "jsonwebtoken";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import gravatar from "gravatar";
 import Jimp from "jimp";
+import mail from "../mailWithMailtrap.js";
+import "dotenv/config";
 
 export const getAllUsers = controllerDecorator(async (req, res, next) => {
   const users = await userList();
@@ -31,25 +34,43 @@ export const registerUser = controllerDecorator(async (req, res) => {
   const emailInLowerCase = email.toLowerCase();
   const existUser = await findUser({ email: emailInLowerCase });
   const passwordHash = await bcrypt.hash(password, 10);
+  const verificationToken = crypto.randomUUID();
   const avatarURL = gravatar.url(emailInLowerCase);
   const userData = {
     email: emailInLowerCase,
     password: passwordHash,
     avatarURL,
+    verificationToken,
   };
-  console.log(avatarURL);
   if (existUser !== null) {
     throw HttpError(409, "Email in use");
   }
   const user = await addUser(userData);
+  mail.sendMail({
+    to: emailInLowerCase,
+    from: process.env.EMAIL_FROM,
+    subject: "Welcome to contacts!",
+    html: `<h1>Please verify your email address!</h1>
+  <p>Click this <a href="http://localhost:${process.env.PORT}/users/verify/${verificationToken}" target="_blank">link</a> to verify your email address</p>`,
+    text: `To verify your email address please open the link http://localhost:${process.env.PORT}/users/verify/${verificationToken}`,
+  });
   res.status(201).json({ user: { email, subscription: user.subscription } });
+});
+
+export const verifyUser = controllerDecorator(async (req, res, next) => {
+  const { verificationToken } = req.params;
+  const user = await findUser({ verificationToken: verificationToken });
+  if (!user) {
+    throw HttpError(404, "User not found");
+  }
+  await changeUser(user._id, { verificationToken: null, verify: true });
+  res.status(200).send("Verification successful");
 });
 
 export const loginUser = controllerDecorator(async (req, res, next) => {
   const { email, password } = req.body;
   const emailInLowerCase = email.toLowerCase();
   const existUser = await findUser({ email: emailInLowerCase });
-  console.log(emailInLowerCase);
 
   if (existUser === null) {
     throw HttpError(409, "Email not found");
@@ -57,6 +78,10 @@ export const loginUser = controllerDecorator(async (req, res, next) => {
   const isMatch = await bcrypt.compare(password, existUser.password);
   if (!isMatch) {
     throw HttpError(401, "Email or password is wrong");
+  }
+
+  if (existUser.verify === false) {
+    throw HttpError(401, "Please, verify you email");
   }
   const token = jwt.sign({ id: existUser._id }, process.env.JWT_SECRET, {
     expiresIn: "1h",
@@ -96,8 +121,8 @@ export const uploadAvatar = controllerDecorator(async (req, res, next) => {
   const newFilePath = path.join(avatarsDir, uniqueFileName);
   await fs.rename(req.file.path, newFilePath);
   const image = await Jimp.read(newFilePath);
-  await image.resize(250, 250).write(newFilePath);
-  const avatarURL = `/avatars/${uniqueFileName}`;
+  await image.resize(250, 250).writeAsync(newFilePath);
+  const avatarURL = path.join("/avatars", uniqueFileName);
   const { id } = req.user;
   const updatedUser = await changeUser({ _id: id }, { avatarURL: avatarURL });
   if (updatedUser === null) {
