@@ -49,10 +49,21 @@ export const registerUser = controllerDecorator(async (req, res) => {
   mail.sendMail({
     to: emailInLowerCase,
     from: process.env.EMAIL_FROM,
-    subject: "Welcome to contacts!",
-    html: `<h1>Please verify your email address!</h1>
-  <p>Click this <a href="http://localhost:${process.env.PORT}/users/verify/${verificationToken}" target="_blank">link</a> to verify your email address</p>`,
-    text: `To verify your email address please open the link http://localhost:${process.env.PORT}/users/verify/${verificationToken}`,
+    subject: "Welcome to Contacts!",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+        <h2 style="text-align: center; color: #4CAF50;">Welcome to Contacts!</h2>
+        <p style="font-size: 16px; color: #333;">Hello,</p>
+        <p style="font-size: 16px; color: #333;">Thank you for registering with Contacts. Please verify your email address to complete your registration.</p>
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${process.env.BASE_URL}${process.env.PORT}/users/verify/${verificationToken}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 16px;">Verify Email</a>
+        </div>
+        <p style="font-size: 16px; color: #333;">If the button above does not work, please copy and paste the following URL into your web browser:</p>
+        <p style="font-size: 14px; color: #555;">"${process.env.BASE_URL}${process.env.PORT}/users/verify/${verificationToken}"</p>
+        <p style="font-size: 16px; color: #333;">Thank you,<br>The Contacts Team</p>
+      </div>
+    `,
+    text: `Hello,\n\nThank you for registering with Contacts. Please verify your email address to complete your registration by clicking the link below:\n\n"${process.env.BASE_URL}${process.env.PORT}/users/verify/${verificationToken}"\n\nIf the link above does not work, please copy and paste the following URL into your web browser:\n\n"${process.env.BASE_URL}${process.env.PORT}/users/verify/${verificationToken}"\n\nThank you,\nThe Contacts Team`,
   });
   res.status(201).json({ user: { email, subscription: user.subscription } });
 });
@@ -65,6 +76,38 @@ export const verifyUser = controllerDecorator(async (req, res, next) => {
   }
   await changeUser(user._id, { verificationToken: null, verify: true });
   res.status(200).send("Verification successful");
+});
+
+export const sendVerifyEmail = controllerDecorator(async (req, res, next) => {
+  const { email } = req.body;
+  const emailInLowerCase = email.toLowerCase();
+  const user = await findUser({ email: emailInLowerCase });
+  if (!user) {
+    throw HttpError(404, "User not found");
+  }
+  if (user.verify === true) {
+    return res.status(400).send("Verification has already been passed");
+  }
+  mail.sendMail({
+    to: emailInLowerCase,
+    from: process.env.EMAIL_FROM,
+    subject: "Welcome to Contacts!",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+        <h2 style="text-align: center; color: #4CAF50;">Welcome to Contacts!</h2>
+        <p style="font-size: 16px; color: #333;">Hello,</p>
+        <p style="font-size: 16px; color: #333;">Thank you for registering with Contacts. Please verify your email address to complete your registration.</p>
+        <div style="text-align: center; margin: 20px 0;">
+          <a href="${process.env.BASE_URL}${process.env.PORT}/users/verify/${user.verificationToken}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 16px;">Verify Email</a>
+        </div>
+        <p style="font-size: 16px; color: #333;">If the button above does not work, please copy and paste the following URL into your web browser:</p>
+        <p style="font-size: 14px; color: #555;">"${process.env.BASE_URL}${process.env.PORT}/users/verify/${user.verificationToken}"</p>
+        <p style="font-size: 16px; color: #333;">Thank you,<br>The Contacts Team</p>
+      </div>
+    `,
+    text: `Hello,\n\nThank you for registering with Contacts. Please verify your email address to complete your registration by clicking the link below:\n\n"${process.env.BASE_URL}${process.env.PORT}/users/verify/${user.verificationToken}"\n\nIf the link above does not work, please copy and paste the following URL into your web browser:\n\n"${process.env.BASE_URL}${process.env.PORT}/users/verify/${user.verificationToken}"\n\nThank you,\nThe Contacts Team`,
+  });
+  res.status(200).send("Verification email sent");
 });
 
 export const loginUser = controllerDecorator(async (req, res, next) => {

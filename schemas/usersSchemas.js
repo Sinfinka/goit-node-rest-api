@@ -39,3 +39,11 @@ export const userSubscriptionSchema = Joi.object({
     "any.only": 'Subscription must be one of "starter", "pro", or "business"',
   }),
 });
+
+export const validateUserEmailSchema = Joi.object({
+  email: Joi.string().email().lowercase().required().messages({
+    "any.required": "missing required field email",
+    "string.empty": "missing required field email",
+    "string.email": 'Field "email" must be a valid email address',
+  }),
+});
